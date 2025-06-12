@@ -1,90 +1,239 @@
-import firebase_admin
-from firebase_admin import credentials, firestore
-from twilio.rest import Client
-import random
-import time
-from datetime import datetime, timedelta
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-# === Firebase Setup ===
-try:
-    cred = credentials.Certificate(r"C:\Users\soray\Downloads\parcel-pin-system-firebase-adminsdk-fbsvc-d3a1cd4a87.json")
-    firebase_admin.initialize_app(cred)
-    db = firestore.client()
-    print("✅ Firebase initialized successfully.")
-except Exception as e:
-    print(f"❌ Firebase initialization failed: {e}")
-    exit(1)
+<script>
+  // Your Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCjP_ZvkY1cwCmPE738KMGYOohZJt4py3c",
+    authDomain: "parcel-pin-system.firebaseapp.com",
+    projectId: "parcel-pin-system",
+    storageBucket: "parcel-pin-system.firebasestorage.app",
+    messagingSenderId: "444891168630",
+    appId: "1:444891168630:web:7dacb5087988c6325ac457"
+  };
 
-# === Twilio Setup ===
-TWILIO_ACCOUNT_SID = 'AC995ed220d0f47b2fbe2d0658da711689'
-TWILIO_AUTH_TOKEN = 'f01489ea68d3fed3356c73da02597c09'
-TWILIO_WHATSAPP_NUMBER = 'whatsapp:+14155238886'
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
 
-try:
-    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-    print("✅ Twilio client initialized.")
-except Exception as e:
-    print(f"❌ Twilio client init failed: {e}")
-    exit(1)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kolej 14 Parcel Collection System Pin Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-# === Track Sent Docs ===
-sent_docs = set()
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #e0f7fa, #80deea);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
 
-# === Generate OTP ===
-def generate_otp():
-    return str(random.randint(100000, 999999))
+    .container {
+      background: #ffffffcc;
+      backdrop-filter: blur(8px);
+      padding: 30px 25px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      max-width: 340px;
+      width: 90%;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+      margin-bottom: 130px;
+    }
 
-# === Send WhatsApp OTP Message ===
-def send_whatsapp_message(phone_number, otp, expiry_str):
-    try:
-        if phone_number.startswith("0"):
-            phone_number = phone_number[1:]
-        to_number = f'whatsapp:+60{phone_number}'
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-        message_body = f"📦 Your Kolej 14 Parcel OTP is: {otp}\n🔒 Valid until: {expiry_str}"
+    h2 {
+      margin-bottom: 40px;
+      color: #006064;
+      font-size: 20px;
+    }
 
-        message = client.messages.create(
-            from_=TWILIO_WHATSAPP_NUMBER,
-            to=to_number,
-            body=message_body
-        )
-        print(f"✅ OTP sent to {to_number}: SID {message.sid}")
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      text-align: left;
+      color: #004d40;
+      font-size: 14px;
+    }
 
-    except Exception as e:
-        print(f"❌ Failed to send WhatsApp to {phone_number}: {e}")
+    input[type="tel"] {
+      display: block;
+      margin: 0 auto 20px auto;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #b2dfdb;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.3s;
+      font-family: 'Roboto', sans-serif;
+    }
 
-# === Firestore Watcher ===
-def watch_firestore():
-    print("👀 Watching for new parcel requests...")
-    while True:
-        try:
-            docs = db.collection("parcel_pins").order_by("timestamp", direction=firestore.Query.DESCENDING).limit(10).stream()
-            for doc in docs:
-                doc_id = doc.id
-                if doc_id in sent_docs:
-                    continue
-                data = doc.to_dict()
-                phone = data.get("phone")
+    input[type="tel"]:focus {
+      border-color: #0097a7;
+    }
 
-                if phone:
-                    otp = generate_otp()
-                    expiry = datetime.utcnow() + timedelta(days=5)
-                    expiry_str = expiry.strftime("%Y-%m-%d %H:%M UTC")
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #0097a7;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
 
-                    # Optional: Save OTP to Firestore for tracking
-                    db.collection("parcel_otps").document(doc_id).set({
-                        "phone": phone,
-                        "otp": otp,
-                        "expires_at": expiry
-                    })
+    button:hover {
+      background: #007c91;
+    }
 
-                    send_whatsapp_message(phone, otp, expiry_str)
-                    sent_docs.add(doc_id)
-            time.sleep(5)
-        except Exception as e:
-            print(f"⚠️ Error reading from Firestore: {e}")
-            time.sleep(10)
+    #result {
+      margin-top: 20px;
+    }
 
-# === Start Watching ===
-if __name__ == "__main__":
-    watch_firestore()
+    #pinDisplay {
+      justify-content: center;
+      align-items: center;
+      font-size: 28px;
+      font-weight: bold;
+      color: #388e3c;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    #copyButton {
+      margin-top: 10px;
+      padding: 10px 15px;
+      background-color: #00796b;
+      color: white;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .copy-icon:hover {
+      color: #004d40;
+    }
+
+    #copyButton:hover {
+      background-color: #004d40;
+    }
+
+    #reminder {
+      margin-top: 15px;
+      color: #004d40;
+      font-size: 14px;
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      h2 {
+        font-size: 20px;
+      }
+
+      input[type="tel"], button {
+        font-size: 15px;
+        padding: 10px;
+      }
+
+      #pinDisplay {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Kolej 14 Parcel Collection<br>Pin Generator</h2>
+
+    <form id="pinForm">
+      <label for="phone">Phone Number</label>
+      <input type="tel" id="phone" name="phone" required pattern="[0-9]{10,15}" placeholder="e.g. 0123456789">
+      <button type="submit">Generate Pin</button>
+    </form>
+
+    <div id="result">
+      <p><strong>Your Pin:</strong></p>
+      <div id="pinDisplay">
+        <span id="pin">------</span>
+      </div>
+      <button id="copyButton" style="display: none;">Copy Code</button>
+      <p id="reminder">Reminder! Please put the pin at the end of the naming on your parcel.</p>
+    </div>
+  </div>
+
+  <script>
+    async function generateDeterministicPin(phone, length = 6) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(phone);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      const hashInt = parseInt(hashHex.substring(0, 12), 16);
+      return (hashInt % (10 ** length)).toString().padStart(length, '0');
+    }
+
+    document.getElementById("pinForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const phone = document.getElementById("phone").value.trim();
+      if (!phone.match(/^[0-9]{10,15}$/)) {
+        alert("Please enter a valid phone number (10 to 15 digits).");
+        return;
+      }
+
+      const pin = await generateDeterministicPin(phone);
+      document.getElementById("pin").textContent = pin;
+      document.getElementById("copyButton").style.display = "inline-block"; // Show copy button
+      document.getElementById("reminder").style.display = "block";
+
+
+      // Save to Firestore
+      try {
+        await db.collection("parcel_pins").add({
+          phone: phone,
+          pin: pin,
+          timestamp: new Date()
+        });
+        console.log("Saved to Firebase!");
+      } catch (err) {
+        console.error("Error saving to Firebase:", err);
+      }
+    });
+
+    // Copy PIN to clipboard
+    document.getElementById("copyButton").addEventListener("click", function () {
+      const pin = document.getElementById("pin").textContent;
+      navigator.clipboard.writeText(pin).then(() => {
+        alert("PIN copied to clipboard!");
+      }).catch(err => {
+        console.error("Copy failed:", err);
+      });
+    });
+  </script>
+
+</body>
+</html>
