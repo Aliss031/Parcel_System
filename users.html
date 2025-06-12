@@ -1,0 +1,71 @@
+<!-- users.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Users - Parcel Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2>Administrator</h2>
+      <nav>
+        <a href="index.html">Dashboard</a>
+        <a href="parcels.html">Parcels</a>
+        <a href="users.html">Users</a>
+        <a href="#">Settings</a>
+        <a href="#">Logout</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header>
+        <h1>User Management</h1>
+      </header>
+
+      <!-- Users Table -->
+      <section class="parcel-table">
+        <h2>Registered Users</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#U001</td>
+              <td>Aliss Soraya</td>
+              <td>john@example.com</td>
+              <td>Student</td>
+              <td><span class="status collected">Active</span></td>
+            </tr>
+            <tr>
+              <td>#U002</td>
+              <td>Muhamad Hazami</td>
+              <td>jane@example.com</td>
+              <td>Admin</td>
+              <td><span class="status pending">Inactive</span></td>
+            </tr>
+            <tr>
+              <td>#U003</td>
+              <td>Ali Rahman</td>
+              <td>ali@example.com</td>
+              <td>Staff</td>
+              <td><span class="status collected">Active</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

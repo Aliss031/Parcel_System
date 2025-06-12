@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Generate your OTP here</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+      text-align: center;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    input[type="tel"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    #result {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    #otp {
+      font-size: 24px;
+      font-weight: bold;
+      color: #28a745;
+    }
+
+    #qrcode {
+      margin-top: 20px;
+      display: inline-block;
+      padding: 10px;
+      background: #f9f9f9;
+      border-radius: 12px;
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        padding: 20px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Get Your Pin & QR Here!</h2>
+
+    <form id="otpForm">
+      <label for="phone">Phone Number</label>
+      <input type="tel" id="phone" name="phone" required pattern="[0-9]{10,15}" placeholder="e.g. 0123456789">
+      <button type="submit">Generate</button>
+    </form>
+
+    <div id="result">
+      <p><strong>Generated OTP:</strong> <span id="otp"></span></p>
+      <div id="qrcode"></div>
+    </div>
+  </div>
+
+  <script>
+    async function generateDeterministicOTP(phone, length = 6) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(phone);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+      // Convert a part of hash to a number
+      const hashInt = parseInt(hashHex.substring(0, 12), 16); // use 12 hex chars
+      const otp = (hashInt % (10 ** length)).toString().padStart(length, '0');
+      return otp;
+    }
+
+    document.getElementById("otpForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const phone = document.getElementById("phone").value.trim();
+      if (!phone.match(/^[0-9]{10,15}$/)) {
+        alert("Invalid phone number format.");
+        return;
+      }
+
+      const otp = await generateDeterministicOTP(phone);
+      document.getElementById("otp").textContent = otp;
+
+      const qrContainer = document.getElementById("qrcode");
+      qrContainer.innerHTML = "";
+      new QRCode(qrContainer, otp);
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Parcel Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2>Administrator</h2>
+      <nav>
+        <a href="#">Dashboard</a>
+        <a href="parcels.html">Parcels</a>
+        <a href="users.html">Users</a>
+        <a href="#">Settings</a>
+        <a href="#">Logout</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header>
+        <h1>Parcel Collection Dashboard</h1>
+      </header>
+
+      <!-- Summary Cards -->
+      <section class="cards">
+        <div class="card">
+          <h3>Total Parcels</h3>
+          <p>152</p>
+        </div>
+        <div class="card">
+          <h3>Pending</h3>
+          <p>48</p>
+        </div>
+        <div class="card">
+          <h3>Collected</h3>
+          <p>104</p>
+        </div>
+      </section>
+
+      <!-- Table -->
+      <section class="parcel-table">
+        <h2>Recent Parcels</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Parcel ID</th>
+              <th>Recipient</th>
+              <th>Status</th>
+              <th>Arrival Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#A001</td>
+              <td>John Doe</td>
+              <td><span class="status pending">Pending</span></td>
+              <td>2025-06-10</td>
+            </tr>
+            <tr>
+              <td>#A002</td>
+              <td>Jane Smith</td>
+              <td><span class="status collected">Collected</span></td>
+              <td>2025-06-09</td>
+            </tr>
+            <tr>
+              <td>#A003</td>
+              <td>Ali Rahman</td>
+              <td><span class="status pending">Pending</span></td>
+              <td>2025-06-11</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
