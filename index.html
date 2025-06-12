@@ -1,3 +1,23 @@
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+  // Your Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCjP_ZvkY1cwCmPE738KMGYOohZJt4py3c",
+    authDomain: "parcel-pin-system.firebaseapp.com",
+    projectId: "parcel-pin-system",
+    storageBucket: "parcel-pin-system.firebasestorage.app",
+    messagingSenderId: "444891168630",
+    appId: "1:444891168630:web:7dacb5087988c6325ac457"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -151,6 +171,45 @@
       document.getElementById("pin").textContent = pin;
     });
   </script>
+
+</body>
+</html>
+
+<script>
+  async function generateDeterministicPin(phone, length = 6) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(phone);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const hashInt = parseInt(hashHex.substring(0, 12), 16);
+    return (hashInt % (10 ** length)).toString().padStart(length, '0');
+  }
+
+  document.getElementById("pinForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const phone = document.getElementById("phone").value.trim();
+    if (!phone.match(/^[0-9]{10,15}$/)) {
+      alert("Please enter a valid phone number (10 to 15 digits).");
+      return;
+    }
+
+    const pin = await generateDeterministicPin(phone);
+    document.getElementById("pin").textContent = pin;
+
+    // ✅ Save to Firestore
+    try {
+      await db.collection("parcel_pins").add({
+        phone: phone,
+        pin: pin,
+        timestamp: new Date()
+      });
+      console.log("Saved to Firebase!");
+    } catch (err) {
+      console.error("Error saving to Firebase:", err);
+    }
+  });
+</script>
 
 </body>
 </html>
