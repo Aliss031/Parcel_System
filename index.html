@@ -24,6 +24,7 @@
   <meta charset="UTF-8">
   <title>Kolej 14 Parcel Collection System Pin Generator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
@@ -47,7 +48,7 @@
       padding: 30px 25px;
       border-radius: 15px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      max-width: 360px;
+      max-width: 340px;
       width: 90%;
       text-align: center;
       animation: fadeIn 1s ease-in-out;
@@ -59,9 +60,9 @@
     }
 
     h2 {
-      margin-bottom: 20px;
+      margin-bottom: 40px;
       color: #006064;
-      font-size: 22px;
+      font-size: 20px;
     }
 
     label {
@@ -70,6 +71,7 @@
       margin-bottom: 6px;
       text-align: left;
       color: #004d40;
+      font-size: 14px;
     }
 
     input[type="tel"] {
@@ -82,6 +84,7 @@
       border-radius: 8px;
       outline: none;
       transition: border-color 0.3s;
+      font-family: 'Roboto', sans-serif;
     }
 
     input[type="tel"]:focus {
@@ -108,11 +111,41 @@
       margin-top: 20px;
     }
 
-    #pin {
+    #pinDisplay {
+      justify-content: center;
+      align-items: center;
       font-size: 28px;
       font-weight: bold;
       color: #388e3c;
       margin-top: 10px;
+      text-align: center;
+    }
+
+    #copyButton {
+      margin-top: 10px;
+      padding: 10px 15px;
+      background-color: #00796b;
+      color: white;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .copy-icon:hover {
+      color: #004d40;
+    }
+
+    #copyButton:hover {
+      background-color: #004d40;
+    }
+
+    #reminder {
+      margin-top: 15px;
+      color: #004d40;
+      font-size: 14px;
+      display: none;
     }
 
     @media (max-width: 480px) {
@@ -125,7 +158,7 @@
         padding: 10px;
       }
 
-      #pin {
+      #pinDisplay {
         font-size: 24px;
       }
     }
@@ -144,7 +177,11 @@
 
     <div id="result">
       <p><strong>Your Pin:</strong></p>
-      <div id="pin">----</div>
+      <div id="pinDisplay">
+        <span id="pin">------</span>
+      </div>
+      <button id="copyButton" style="display: none;">Copy Code</button>
+      <p id="reminder">Reminder! Please put the pin at the end of the naming on your parcel.</p>
     </div>
   </div>
 
@@ -169,47 +206,33 @@
 
       const pin = await generateDeterministicPin(phone);
       document.getElementById("pin").textContent = pin;
+      document.getElementById("copyButton").style.display = "inline-block"; // Show copy button
+      document.getElementById("reminder").style.display = "block";
+
+
+      // Save to Firestore
+      try {
+        await db.collection("parcel_pins").add({
+          phone: phone,
+          pin: pin,
+          timestamp: new Date()
+        });
+        console.log("Saved to Firebase!");
+      } catch (err) {
+        console.error("Error saving to Firebase:", err);
+      }
+    });
+
+    // Copy PIN to clipboard
+    document.getElementById("copyButton").addEventListener("click", function () {
+      const pin = document.getElementById("pin").textContent;
+      navigator.clipboard.writeText(pin).then(() => {
+        alert("PIN copied to clipboard!");
+      }).catch(err => {
+        console.error("Copy failed:", err);
+      });
     });
   </script>
-
-</body>
-</html>
-
-<script>
-  async function generateDeterministicPin(phone, length = 6) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(phone);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    const hashInt = parseInt(hashHex.substring(0, 12), 16);
-    return (hashInt % (10 ** length)).toString().padStart(length, '0');
-  }
-
-  document.getElementById("pinForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-    const phone = document.getElementById("phone").value.trim();
-    if (!phone.match(/^[0-9]{10,15}$/)) {
-      alert("Please enter a valid phone number (10 to 15 digits).");
-      return;
-    }
-
-    const pin = await generateDeterministicPin(phone);
-    document.getElementById("pin").textContent = pin;
-
-    // ✅ Save to Firestore
-    try {
-      await db.collection("parcel_pins").add({
-        phone: phone,
-        pin: pin,
-        timestamp: new Date()
-      });
-      console.log("Saved to Firebase!");
-    } catch (err) {
-      console.error("Error saving to Firebase:", err);
-    }
-  });
-</script>
 
 </body>
 </html>
