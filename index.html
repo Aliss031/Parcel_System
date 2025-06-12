@@ -2,56 +2,76 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Generate your OTP here</title>
+  <title>Kolej 14 Parcel Collection System Pin Generator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f4f6f8;
+      background: linear-gradient(135deg, #e0f7fa, #80deea);
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      flex-direction: column;
     }
 
     .container {
-      background: #fff;
-      padding: 30px 40px;
+      background: #ffffffcc;
+      backdrop-filter: blur(8px);
+      padding: 30px 25px;
       border-radius: 15px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      max-width: 400px;
-      width: 100%;
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     h2 {
       margin-bottom: 20px;
-      color: #333;
-      text-align: center;
+      color: #006064;
+      font-size: 22px;
     }
 
     label {
       font-weight: 600;
-      margin-bottom: 5px;
       display: block;
+      margin-bottom: 6px;
+      text-align: left;
+      color: #004d40;
     }
 
     input[type="tel"] {
+      display: block;
+      margin: 0 auto 20px auto;
       width: 100%;
       padding: 12px;
       font-size: 16px;
-      border: 1px solid #ccc;
+      border: 1px solid #b2dfdb;
       border-radius: 8px;
-      margin-bottom: 20px;
-      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    input[type="tel"]:focus {
+      border-color: #0097a7;
     }
 
     button {
       width: 100%;
       padding: 12px;
-      background: #007bff;
+      background: #0097a7;
       color: white;
       font-size: 16px;
       border: none;
@@ -61,35 +81,32 @@
     }
 
     button:hover {
-      background: #0056b3;
+      background: #007c91;
     }
 
     #result {
-      margin-top: 30px;
-      text-align: center;
-    }
-
-    #otp {
-      font-size: 24px;
-      font-weight: bold;
-      color: #28a745;
-    }
-
-    #qrcode {
       margin-top: 20px;
-      display: inline-block;
-      padding: 10px;
-      background: #f9f9f9;
-      border-radius: 12px;
     }
 
-    @media (max-width: 500px) {
-      .container {
-        padding: 20px;
-      }
+    #pin {
+      font-size: 28px;
+      font-weight: bold;
+      color: #388e3c;
+      margin-top: 10px;
+    }
 
+    @media (max-width: 480px) {
       h2 {
         font-size: 20px;
+      }
+
+      input[type="tel"], button {
+        font-size: 15px;
+        padding: 10px;
+      }
+
+      #pin {
+        font-size: 24px;
       }
     }
   </style>
@@ -97,49 +114,41 @@
 <body>
 
   <div class="container">
-    <h2>Get Your Pin & QR Here!</h2>
+    <h2>Kolej 14 Parcel Collection<br>Pin Generator</h2>
 
-    <form id="otpForm">
+    <form id="pinForm">
       <label for="phone">Phone Number</label>
       <input type="tel" id="phone" name="phone" required pattern="[0-9]{10,15}" placeholder="e.g. 0123456789">
-      <button type="submit">Generate</button>
+      <button type="submit">Generate Pin</button>
     </form>
 
     <div id="result">
-      <p><strong>Generated OTP:</strong> <span id="otp"></span></p>
-      <div id="qrcode"></div>
+      <p><strong>Your Pin:</strong></p>
+      <div id="pin">----</div>
     </div>
   </div>
 
   <script>
-    async function generateDeterministicOTP(phone, length = 6) {
+    async function generateDeterministicPin(phone, length = 6) {
       const encoder = new TextEncoder();
       const data = encoder.encode(phone);
       const hashBuffer = await crypto.subtle.digest("SHA-256", data);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-      // Convert a part of hash to a number
-      const hashInt = parseInt(hashHex.substring(0, 12), 16); // use 12 hex chars
-      const otp = (hashInt % (10 ** length)).toString().padStart(length, '0');
-      return otp;
+      const hashInt = parseInt(hashHex.substring(0, 12), 16);
+      return (hashInt % (10 ** length)).toString().padStart(length, '0');
     }
 
-    document.getElementById("otpForm").addEventListener("submit", async function (e) {
+    document.getElementById("pinForm").addEventListener("submit", async function (e) {
       e.preventDefault();
-
       const phone = document.getElementById("phone").value.trim();
       if (!phone.match(/^[0-9]{10,15}$/)) {
-        alert("Invalid phone number format.");
+        alert("Please enter a valid phone number (10 to 15 digits).");
         return;
       }
 
-      const otp = await generateDeterministicOTP(phone);
-      document.getElementById("otp").textContent = otp;
-
-      const qrContainer = document.getElementById("qrcode");
-      qrContainer.innerHTML = "";
-      new QRCode(qrContainer, otp);
+      const pin = await generateDeterministicPin(phone);
+      document.getElementById("pin").textContent = pin;
     });
   </script>
 
