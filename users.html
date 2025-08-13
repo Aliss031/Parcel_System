@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Users - Parcel Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="dashboard">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2>Administrator</h2>
+      <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="parcels.html">Parcels</a>
+        <a href="users.html" class="active">Users</a>
+        <a href="#">Settings</a>
+        <a href="#">Logout</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Topbar -->
+      <header class="topbar">
+        <h1>User Management</h1>
+        <button class="toggle-btn" id="theme-toggle">🌙</button>
+      </header>
+
+      <!-- Users Table -->
+      <section class="table-section">
+        <h2>Registered Users</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>User ID (PIN)</th>
+                <th>Phone Number</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <!-- Rows will be inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjP_ZvkY1cwCmPE738KMGYOohZJt4py3c",
+      authDomain: "parcel-pin-system.firebaseapp.com",
+      projectId: "parcel-pin-system",
+      storageBucket: "parcel-pin-system.firebasestorage.app",
+      messagingSenderId: "444891168630",
+      appId: "1:444891168630:web:7dacb5087988c6325ac457"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Load users from Firestore
+    async function loadUsers() {
+      const tbody = document.getElementById('users-tbody');
+      tbody.innerHTML = ''; // Clear existing rows
+      try {
+        const snapshot = await db.collection("parcel_pins").orderBy("timestamp", "desc").get();
+        if (snapshot.empty) {
+          const row = document.createElement('tr');
+          row.innerHTML = '<td colspan="2">No users found.</td>';
+          tbody.appendChild(row);
+        } else {
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const pin = data.pin || 'N/A';
+            const phone = data.phone || 'N/A';
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${pin}</td><td>${phone}</td>`;
+            tbody.appendChild(row);
+          });
+        }
+      } catch (error) {
+        console.error("Error loading users:", error);
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="2">Error loading users.</td>';
+        tbody.appendChild(row);
+      }
+    }
+
+    // Theme Toggle Logic
+    const themeToggle = document.getElementById("theme-toggle");
+    document.addEventListener("DOMContentLoaded", () => {
+      // Load saved theme
+      if (localStorage.getItem("theme") === "light") {
+        document.body.classList.add("light");
+        themeToggle.textContent = "☀️ Light Mode";
+      }
+      loadUsers();
+    });
+
+    themeToggle.addEventListener("click", () => {
+      document.body.classList.toggle("light");
+      const isLight = document.body.classList.contains("light");
+      themeToggle.textContent = isLight ? "🌙 Dark Mode" : "☀️ Light Mode";
+      localStorage.setItem("theme", isLight ? "light" : "dark");
+    });
+  </script>
+</body>
+</html>

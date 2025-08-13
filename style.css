@@ -1,0 +1,218 @@
+/* ===== Base / Reset ===== */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+  color: #fff;
+  background: linear-gradient(135deg, #0d0d0d, #1a1a1a); /* Dark black gradient */
+  transition: background 0.35s ease, color 0.35s ease;
+}
+
+/* Light theme */
+body.light {
+  background: #fff6ef;
+  color: #3b2e2a;
+}
+
+/* ===== Layout ===== */
+.dashboard {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  background: #141414;
+  border-right: 2px solid #ff7e29; /* solid orange border */
+}
+body.light .sidebar {
+  background: rgba(255, 184, 107, 0.9);
+  border-right: 2px solid #ff7e29;
+}
+
+.sidebar h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #ff7e29;
+}
+
+.sidebar nav a {
+  display: block;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.5rem;
+  text-decoration: none;
+  border-radius: 10px;
+  color: rgba(255,255,255,0.85);
+  transition: background 0.25s ease, transform 0.18s ease;
+}
+.sidebar nav a:hover {
+  background: #ff7e29; /* solid orange */
+  color: #000;
+  transform: translateX(2px);
+}
+.sidebar nav a.active {
+  background: #ff7e29;
+  color: #000;
+}
+
+body.light .sidebar nav a {
+  color: #4b2e1e;
+}
+body.light .sidebar nav a:hover {
+  background: #ff7e29;
+  color: #fff;
+}
+body.light .sidebar nav a.active {
+  background: #ff7e29;
+  color: #fff;
+}
+
+/* ===== Main Content ===== */
+.main-content {
+  flex: 1;
+  min-width: 0;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.topbar h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+/* Toggle button */
+.toggle-btn {
+  border: 0;
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  background: #ff7e29;
+  color: #000;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.18s ease;
+}
+.toggle-btn:hover {
+  background: #e46f1f;
+  transform: translateY(-1px);
+}
+body.light .toggle-btn { background: #ff7e29; color: #fff; }
+body.light .toggle-btn:hover { background: #e46f1f; }
+
+/* ===== Cards ===== */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.card {
+  background: #1a1a1a;
+  border: 2px solid #ff7e29; /* solid orange border */
+  border-radius: 14px;
+  padding: 1.2rem 1.4rem;
+  transition: transform 0.25s ease, background 0.3s ease;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+}
+.card:hover { 
+  transform: translateY(-4px); 
+  background: #ff7e29;
+  color: #000;
+}
+body.light .card {
+  background: #ffe1cc;
+  border: 2px solid #ff7e29;
+  box-shadow: 0 10px 22px rgba(255, 138, 40, 0.15);
+}
+
+.card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  opacity: 0.85;
+  margin-bottom: 0.45rem;
+}
+.card p {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+/* ===== Table ===== */
+.parcel-table {
+  background: #1a1a1a;
+  border: 2px solid #ff7e29; /* solid orange border */
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+}
+body.light .parcel-table {
+  background: #ffe1cc;
+  border: 2px solid #ff7e29;
+}
+.parcel-table h2 {
+  margin-bottom: 0.8rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ff7e29;
+}
+body.light .parcel-table h2 {
+  color: #3b2e2a;
+}
+
+table { width: 100%; border-collapse: collapse; }
+thead { background: #ff7e29; color: #000; }
+body.light thead { background: #ff7e29; color: #fff; }
+th, td {
+  text-align: left;
+  padding: 0.85rem 0.75rem;
+  white-space: nowrap;
+}
+th { font-weight: 700; }
+tbody tr { border-bottom: 1px solid #ff7e29; }
+body.light tbody tr { border-bottom: 1px solid #ff7e29; }
+tbody tr:hover {
+  background: #ff7e29;
+  color: #000;
+}
+body.light tbody tr:hover {
+  background: #ff7e29;
+  color: #fff;
+}
+
+/* ===== Status Badges ===== */
+.status {
+  display: inline-block;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+.status.pending {
+  background: #ffb400;
+  color: #000;
+}
+.status.collected {
+  background: #28a745;
+  color: #fff;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+  .sidebar { width: 220px; }
+}
+@media (max-width: 720px) {
+  .sidebar { display: none; }
+  .main-content { padding: 1.25rem; }
+  .topbar h1 { font-size: 1.35rem; }
+}

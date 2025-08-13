@@ -1,0 +1,90 @@
+import firebase_admin
+from firebase_admin import credentials, firestore
+from twilio.rest import Client
+import random
+import time
+from datetime import datetime, timedelta
+
+# === Firebase Setup ===
+try:
+    cred = credentials.Certificate(r"C:\Users\soray\Downloads\parcel-pin-system-firebase-adminsdk-fbsvc-d3a1cd4a87.json")
+    firebase_admin.initialize_app(cred)
+    db = firestore.client()
+    print("✅ Firebase initialized successfully.")
+except Exception as e:
+    print(f"❌ Firebase initialization failed: {e}")
+    exit(1)
+
+# === Twilio Setup ===
+TWILIO_ACCOUNT_SID = 'AC995ed220d0f47b2fbe2d0658da711689'
+TWILIO_AUTH_TOKEN = '60d6621583baebffdad0c2aff5bc8e48'
+TWILIO_WHATSAPP_NUMBER = 'whatsapp:+14155238886'
+
+try:
+    client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+    print("✅ Twilio client initialized.")
+except Exception as e:
+    print(f"❌ Twilio client init failed: {e}")
+    exit(1)
+
+# === Track Sent Docs ===
+sent_docs = set()
+
+# === Generate OTP ===
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
+# === Send WhatsApp OTP Message ===
+def send_whatsapp_message(phone_number, otp, expiry_str):
+    try:
+        if phone_number.startswith("0"):
+            phone_number = phone_number[1:]
+        to_number = f'whatsapp:+60{phone_number}'
+
+        message_body = f"📦 Your Kolej 14 Parcel OTP is: {otp}\n🔒 Valid until: {expiry_str}"
+
+        message = client.messages.create(
+            from_=TWILIO_WHATSAPP_NUMBER,
+            to=to_number,
+            body=message_body
+        )
+        print(f"✅ OTP sent to {to_number}: SID {message.sid}")
+
+    except Exception as e:
+        print(f"❌ Failed to send WhatsApp to {phone_number}: {e}")
+
+# === Firestore Watcher ===
+def watch_firestore():
+    print("👀 Watching for new parcel requests...")
+    while True:
+        try:
+            docs = db.collection("parcel_pins").order_by("timestamp", direction=firestore.Query.DESCENDING).limit(10).stream()
+            for doc in docs:
+                doc_id = doc.id
+                if doc_id in sent_docs:
+                    continue
+                data = doc.to_dict()
+                phone = data.get("phone")
+
+                if phone:
+                    otp = generate_otp()
+                    expiry = datetime.utcnow() + timedelta(days=5)
+                    expiry_str = expiry.strftime("%Y-%m-%d %H:%M UTC")
+
+                    # Optional: Save OTP to Firestore for tracking
+                    db.collection("parcel_otps").document(doc_id).set({
+                        "phone": phone,
+                        "otp": otp,
+                        "expires_at": expiry
+                    })
+
+                    send_whatsapp_message(phone, otp, expiry_str)
+                    sent_docs.add(doc_id)
+            time.sleep(5)
+        except Exception as e:
+            print(f"⚠️ Error reading from Firestore: {e}")
+            time.sleep(10)
+
+# === Start Watching ===
+if __name__ == "__main__":
+    watch_firestore()

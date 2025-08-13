@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Parcel Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2>Administrator</h2>
+      <nav>
+        <a href="dashboard.html" class="active">Dashboard</a>
+        <a href="parcels.html">Parcels</a>
+        <a href="users.html">Users</a>
+        <a href="#">Settings</a>
+        <a href="#">Logout</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="topbar">
+        <h1>Parcel Collection Dashboard</h1>
+        <button class="toggle-btn" id="toggleTheme" aria-pressed="false" title="Toggle theme">☀️ Light Mode</button>
+      </header>
+
+      <!-- Summary Cards -->
+      <section class="cards">
+        <div class="card">
+          <h3>Total Parcels</h3>
+          <p id="total-count">0</p>
+        </div>
+        <div class="card">
+          <h3>Pending</h3>
+          <p id="pending-count">0</p>
+        </div>
+        <div class="card">
+          <h3>Collected</h3>
+          <p id="collected-count">0</p>
+        </div>
+      </section>
+
+      <!-- Table -->
+      <section class="parcel-table">
+        <h2>Recent Parcels</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Parcel ID</th>
+              <th>Recipient</th>
+              <th>Status</th>
+              <th>Arrival Date</th>
+            </tr>
+          </thead>
+          <tbody id="recent-parcels-tbody">
+            <!-- Dynamic rows go here -->
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Firebase config (unchanged)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjP_ZvkY1cwCmPE738KMGYOohZJt4py3c",
+      authDomain: "parcel-pin-system.firebaseapp.com",
+      projectId: "parcel-pin-system",
+      storageBucket: "parcel-pin-system.firebasestorage.app",
+      messagingSenderId: "444891168630",
+      appId: "1:444891168630:web:7dacb5087988c6325ac457"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function loadDashboardData() {
+      const tbody = document.getElementById("recent-parcels-tbody");
+      const totalEl = document.getElementById("total-count");
+      const pendingEl = document.getElementById("pending-count");
+      const collectedEl = document.getElementById("collected-count");
+
+      let total = 0, pending = 0, collected = 0;
+
+      try {
+        const snapshot = await db.collection("parcel_info").orderBy("arrival_date", "desc").limit(5).get();
+        tbody.innerHTML = "";
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const parcelId = data.parcel_id || "-";
+          const name = data.name || "-";
+          const status = (data.status || "Pending").trim();
+          const arrival = data.arrival_date?.toDate().toISOString().split("T")[0] || "-";
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${parcelId}</td>
+            <td>${name}</td>
+            <td><span class="status ${status.toLowerCase()}">${status}</span></td>
+            <td>${arrival}</td>
+          `;
+          tbody.appendChild(row);
+
+          total++;
+          if (status.toLowerCase() === "collected") collected++;
+          else pending++;
+        });
+
+        totalEl.textContent = total;
+        pendingEl.textContent = pending;
+        collectedEl.textContent = collected;
+
+      } catch (err) {
+        console.error("Error loading dashboard:", err);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadDashboardData();
+
+      // Theme toggle (keeps your original structure)
+      const toggleBtn = document.getElementById("toggleTheme");
+      const setBtnLabel = () => {
+        const light = document.body.classList.contains("light");
+        toggleBtn.textContent = light ? "🌙 Dark Mode" : "☀️ Light Mode";
+        toggleBtn.setAttribute("aria-pressed", String(!light));
+      };
+
+      // Optional: restore persisted preference
+      const saved = localStorage.getItem("theme");
+      if (saved === "light") document.body.classList.add("light");
+      setBtnLabel();
+
+      toggleBtn.addEventListener("click", () => {
+        document.body.classList.toggle("light");
+        localStorage.setItem("theme", document.body.classList.contains("light") ? "light" : "dark");
+        setBtnLabel();
+      });
+    });
+  </script>
+</body>
+</html>
