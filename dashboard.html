@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UniDrop Dashboard</title>
+
+  <!-- Google Fonts: Roboto -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', Arial, sans-serif;
+      background: #24033d;
+      color: white;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 190px;
+      height: 100%;
+      background: #3c1f60; /* dark purple */
+      padding: 2rem 1rem 1rem 1rem; 
+      box-sizing: border-box;
+      transition: width 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      border-top-right-radius: 20px;   
+      border-bottom-right-radius: 20px;
+    }
+
+    .sidebar.collapsed {
+      width: 80px;
+      align-items: center;
+      padding-top: 3rem; 
+    }
+
+    /* Logo + Company wrapper */
+    .company-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+
+    .company-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+      margin-left: 10px;
+    }
+
+    .company-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .company-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Divider */
+    .divider {
+      width: 95%;
+      height: 1px;
+      margin-top: 8px;
+      background-color: rgba(255, 255, 255, 0.2);
+      border-radius: 1px;
+      margin-bottom: 1.5rem;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Navigation */
+    nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      flex-grow: 1;
+      width: 100%;
+      position: relative;
+      margin-top: auto;       /* 👈 Pushes icons down */
+      padding-bottom: 2rem;   /* 👈 Optional spacing from bottom */
+    }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      text-decoration: none;
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      transition: background 0.3s, padding 0.3s;
+      height: 44px;
+      font-weight: 500;
+    }
+
+    nav a:hover,
+    nav a.active {
+      background: #6f1ab6 !important; /* dark purple hover */
+    }
+
+    nav a i {
+      min-width: 20px;
+      text-align: center;
+      font-size: 1.2rem;
+      transition: all 0.3s ease;
+    }
+
+    /* When collapsed, push nav items lower */
+    /* Push down the first nav item when sidebar is collapsed */
+    .sidebar.collapsed nav {
+      margin-top:74px; /* adjust this value until spacing looks right */
+    }
+
+
+
+    .sidebar.collapsed nav a span {
+      display: none;
+    }
+
+    /* Toggle Button */
+    .toggle-btn {
+      position: absolute;
+      top: 12%;
+      transform: translateY(-50%);
+      right: -15px;
+      background: #6f1ab6; /* dark purple */
+      border: none;
+      color: #fff;
+      padding: 0.4rem 0.6rem;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 8px rgba(0,0,0,0.3);
+    }
+
+    /* Collapsed adjustments */
+    .sidebar.collapsed .company-wrapper {
+      display: none;
+    }
+
+    .sidebar.collapsed .divider {
+      display: none;
+    }
+
+    /* Logo above first nav item when collapsed */
+    .collapsed-logo {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      position: absolute;     /* make it float in sidebar */
+      top: 30px;              /* adjust how high it sits */
+      left: 55%;
+      transform: translateX(-50%);
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar.collapsed .collapsed-logo {
+      display: block;
+    }
+
+    .collapsed-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-left: 200px;
+      padding: 2rem;
+      transition: margin-left 0.3s ease;
+      width: calc(100% - 200px);
+    }
+
+    .sidebar.collapsed ~ .main-content {
+      margin-left: 80px;
+      width: calc(100% - 80px);
+    }
+
+    /* Topbar */
+    .topbar {
+      margin-bottom: 2rem;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    /* Cards */
+    .cards {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      background: #622aac; /* dark purple */
+      flex: 1;
+      min-width: 150px;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      text-align: center;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .card:hover {
+      background: #983fe0; /* dark purple hover */
+      transform: translateY(-3px);
+    }
+
+    .card h3 {
+      margin: 0 0 0.5rem 0;
+      font-weight: 500;
+      font-size: 1rem;
+    }
+
+    .card p {
+      font-size: 1.5rem;
+      margin: 0;
+      font-weight: 700;
+    }
+
+    /* Table */
+    .parcel-table h2 {
+      margin-bottom: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #622aac; /* dark purple table background */
+      border-radius: 12px;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    table th, table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+
+    table th {
+      background: #622aac; /* dark purple header */
+    }
+
+    table tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    table tr:hover {
+      background: #6f1ab6; /* dark purple hover */
+    }
+
+    /* Status Badges */
+    .status.pending {
+      color: #ffcc66;
+      font-weight: 600;
+    }
+
+    .status.collected {
+      color: #33cc99;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar" id="sidebar">
+    <button class="toggle-btn" id="toggle-btn">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+
+    <div class="company-wrapper">
+      <div class="company-logo">
+        <img src="logotry.gif" alt="UniDrop Logo">
+      </div>
+      <div class="company-name">UniDrop</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="collapsed-logo">
+      <img src="logotry.gif" alt="UniDrop Logo">
+    </div>
+
+    <nav>
+      <a href="dashboard.html"><i class="fa-solid fa-house"></i> <span>Home</span></a>
+      <a href="parcels.html"><i class="fa-solid fa-box"></i> <span>Parcels</span></a>
+      <a href="users.html"><i class="fa-solid fa-users"></i> <span>Users</span></a>
+      <a href="settings.html"><i class="fa-solid fa-gear"></i> <span>Settings</span></a>
+      <a href="#"><i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span></a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <h1>Parcel Collection Dashboard</h1>
+    </header>
+
+    <section class="cards">
+      <div class="card">
+        <h3>Total Parcels</h3>
+        <p id="total-count">0</p>
+      </div>
+      <div class="card">
+        <h3>Pending</h3>
+        <p id="pending-count">0</p>
+      </div>
+      <div class="card">
+        <h3>Collected</h3>
+        <p id="collected-count">0</p>
+      </div>
+    </section>
+
+    <section class="parcel-table">
+      <h2>Recent Parcels</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Parcel ID</th>
+            <th>Recipient</th>
+            <th>Status</th>
+            <th>Arrival Date</th>
+          </tr>
+        </thead>
+        <tbody id="recent-parcels-tbody">
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("toggle-btn");
+
+    toggleBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("collapsed");
+      toggleBtn.innerHTML = sidebar.classList.contains("collapsed")
+        ? '<i class="fa-solid fa-chevron-right"></i>'
+        : '<i class="fa-solid fa-chevron-left"></i>';
+    });
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjP_ZvkY1cwCmPE738KMGYOohZJt4py3c",
+      authDomain: "parcel-pin-system.firebaseapp.com",
+      projectId: "parcel-pin-system",
+      storageBucket: "parcel-pin-system.firebasestorage.app",
+      messagingSenderId: "444891168630",
+      appId: "1:444891168630:web:7dacb5087988c6325ac457"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function loadDashboardData() {
+      const tbody = document.getElementById("recent-parcels-tbody");
+      const totalEl = document.getElementById("total-count");
+      const pendingEl = document.getElementById("pending-count");
+      const collectedEl = document.getElementById("collected-count");
+
+      let total = 0, pending = 0, collected = 0;
+
+      try {
+        const snapshot = await db.collection("parcel_info").orderBy("arrival_date", "desc").limit(5).get();
+        tbody.innerHTML = "";
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const parcelId = data.parcel_id || "-";
+          const name = data.name || "-";
+          const status = (data.status || "Pending").trim();
+          const arrival = data.arrival_date?.toDate().toISOString().split("T")[0] || "-";
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${parcelId}</td>
+            <td>${name}</td>
+            <td><span class="status ${status.toLowerCase()}">${status}</span></td>
+            <td>${arrival}</td>
+          `;
+          tbody.appendChild(row);
+
+          total++;
+          if (status.toLowerCase() === "collected") collected++;
+          else pending++;
+        });
+
+        totalEl.textContent = total;
+        pendingEl.textContent = pending;
+        collectedEl.textContent = collected;
+
+      } catch (err) {
+        console.error("Error loading dashboard:", err);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadDashboardData);
+  </script>
+</body>
+</html>
