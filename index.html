@@ -13,19 +13,30 @@
       align-items: center;
       text-align: center;
       height: 100vh;
-      background: linear-gradient(to right, #1e90ff, #6dd5fa);
+      background: linear-gradient(to right, #3c1f60, #6f1ab6);
       color: #fff;
       font-family: 'Segoe UI', sans-serif;
+    }
+
+    .logo {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
     h1 {
       font-size: 42px;
       margin-bottom: 20px;
+      color: #ffffff;
     }
 
     p {
       font-size: 18px;
       margin-bottom: 40px;
+      color: #e0d7f5;
     }
 
     .button-group {
@@ -36,7 +47,7 @@
     a.button {
       padding: 12px 24px;
       background-color: #fff;
-      color: #1e90ff;
+      color: #6f1ab6;
       font-weight: bold;
       text-decoration: none;
       border-radius: 8px;
@@ -44,7 +55,8 @@
     }
 
     a.button:hover {
-      background-color: #f0f0f0;
+      background-color: #f0e8ff;
+      color: #3c1f60;
     }
 
     footer {
@@ -56,16 +68,19 @@
   </style>
 </head>
 <body>
-  <h1>Welcome to the Parcel Collection System</h1>
+  <!-- Company Logo -->
+  <img src="logotry.gif" alt="UniDrop Logo" class="logo">
+
+  <h1>Welcome to UniDrop</h1>
   <p>Manage parcels, users, and collections efficiently in one place.</p>
 
   <div class="button-group">
-    <a href="index.html" class="button">Go to Dashboard</a>
+    <a href="dashboard.html" class="button">Go to Dashboard</a>
     <a href="users.html" class="button">Manage Users</a>
   </div>
 
   <footer>
-    &copy; 2025 Parcel Collection System. All rights reserved.
+    &copy; 2025 UniDrop. All rights reserved.
   </footer>
 </body>
 </html>
